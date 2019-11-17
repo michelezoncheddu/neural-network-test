@@ -4,3 +4,5 @@
 .Spotlight-V100
 .TemporaryItems
 .Trashes
+
+__pycache__/
