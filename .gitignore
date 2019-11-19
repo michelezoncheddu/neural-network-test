@@ -6,3 +6,5 @@
 .Trashes
 
 __pycache__/
+
+.vscode/

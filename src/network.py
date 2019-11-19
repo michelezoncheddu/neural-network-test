@@ -1,4 +1,3 @@
-from csv import reader
 import random
 
 from layer import Layer
@@ -25,28 +24,28 @@ class Network:
     def init_hidden_layer_weights(self):
         """Init hidden layer weights with random values"""
         for h in range(len(self.hidden_layer.units)):
-            for i in range(self.num_inputs):
+            for _ in range(self.num_inputs):
                 self.hidden_layer.units[h].weights.append(random.random() / 10)  # [0, 0.1)
 
     def init_output_layer_weights(self):
         """Init output layer weights with random values"""
         for o in range(len(self.output_layer.units)):
-            for h in range(len(self.hidden_layer.units)):
+            for _ in range(len(self.hidden_layer.units)):
                 self.output_layer.units[o].weights.append(random.random() / 10)  # [0, 0.1)
 
-    def train(self, file):
-        data = reader(file, delimiter=' ')
-        for line in data:
-            outputs = []
+    def train(self, training_set):
+        # Layers functions.
+        input_layer_function = lambda x: 2 * x
+        hidden_layer_function = lambda x: 2 * x
+        output_layer_function = lambda x: 3 * x
+
+        for data in training_set:
 
             # Compute input layer functions.
-            for i in range(1, 7):  # --> range(num_inputs)
-                outputs.append(2 * int(line[i]))
+            input_layer_outputs = []
+            for i in range(self.num_inputs):
+                input_layer_outputs.append(input_layer_function(data[i]))
             
-            double = lambda x: 2 * x
-            triple = lambda x: 3 * x
-
-            outputs = self.hidden_layer.compute(double, outputs)
-            outputs = self.output_layer.compute(triple, outputs)
-
-            print(outputs)
+            
+            hidden_layer_outputs = self.hidden_layer.compute(hidden_layer_function, input_layer_outputs)
+            self.output_layer.compute(output_layer_function, hidden_layer_outputs)
