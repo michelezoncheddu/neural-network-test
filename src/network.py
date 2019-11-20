@@ -1,3 +1,4 @@
+import math
 import random
 
 from layer import Layer
@@ -14,38 +15,32 @@ class Network:
         """
 
         self.num_inputs = num_inputs
-
-        self.hidden_layer = Layer(num_hidden)
-        self.output_layer = Layer(num_outputs)
-
-        self.init_hidden_layer_weights()
-        self.init_output_layer_weights()
         
-    def init_hidden_layer_weights(self):
-        """Init hidden layer weights with random values"""
-        for h in range(len(self.hidden_layer.units)):
-            for _ in range(self.num_inputs):
-                self.hidden_layer.units[h].weights.append(random.random() / 10)  # [0, 0.1)
+        # Sigmoidal logistic function.
+        self.activation_function = lambda x: 1 / (1 + math.exp(-x))
 
-    def init_output_layer_weights(self):
-        """Init output layer weights with random values"""
-        for o in range(len(self.output_layer.units)):
-            for _ in range(len(self.hidden_layer.units)):
-                self.output_layer.units[o].weights.append(random.random() / 10)  # [0, 0.1)
+        self.layers = []
+        self.layers.append(Layer(num_inputs, self.activation_function))  # Temporary input layer.
+        self.layers.append(Layer(num_hidden, self.activation_function))
+        self.layers.append(Layer(num_outputs, self.activation_function))
+
+        for i in range(len(self.layers)):
+            self.init_layer_weights(self.layers[i], self.layers[i - 1])
+        
+        self.layers.pop(0)
+
+    def init_layer_weights(self, layer, previous_layer):
+        """Init layer weights with random values"""
+        for unit in layer.units:
+            for _ in range(previous_layer.num_units()):
+                unit.weights.append(random.random() * 10)  # [0, 0.1)
 
     def train(self, training_set):
-        # Layers functions.
-        input_layer_function = lambda x: 2 * x
-        hidden_layer_function = lambda x: 2 * x
-        output_layer_function = lambda x: 3 * x
-
-        for data in training_set:
-
-            # Compute input layer functions.
-            input_layer_outputs = []
-            for i in range(self.num_inputs):
-                input_layer_outputs.append(input_layer_function(data[i]))
+        for pattern in training_set:
+            outputs = map(self.activation_function, pattern)  # Compute input layer.
+            for layer in self.layers:
+                outputs = layer.compute(outputs)
             
-            
-            hidden_layer_outputs = self.hidden_layer.compute(hidden_layer_function, input_layer_outputs)
-            self.output_layer.compute(output_layer_function, hidden_layer_outputs)
+            # Test.
+            print(outputs)
+            break
