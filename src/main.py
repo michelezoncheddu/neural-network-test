@@ -3,14 +3,17 @@ from network import Network
 
 
 def main():
-    features_cardinality = [3, 3, 2, 3, 4, 2]
+    features_cardinality = [3, 3, 2, 3, 4, 2]  # See data/monk.names file.
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
+
     training_set_path = 'data/training/monks-1.train'
+
     hidden_units = 2
     output_units = 1
 
     nn = Network(features_values, hidden_units, output_units)
+
     training_set = []
         
     with open(training_set_path, 'r') as file:
