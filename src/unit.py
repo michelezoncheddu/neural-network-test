@@ -13,7 +13,7 @@ class Unit:
         # Compute the net value adding together the inputs
         # multiplied by their weights.
         for data in inputs:
-            net += int(data) * self.weights[weight_index]
+            net += float(data) * self.weights[weight_index]
             weight_index += 1
 
         return activation_function(net + self.bias)

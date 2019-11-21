@@ -34,14 +34,14 @@ class Network:
         """Init layer weights with random values."""
         for unit in layer.units:
             for _ in range(len(previous_layer.units)):
-                unit.weights.append(random.random() * 10)  # [0, 0.1)
+                unit.weights.append(random.random() / 10)  # [0, 0.1)
 
     def train(self, training_set):
         for pattern in training_set:
-            outputs = map(self.activation_function, pattern)  # Compute input layer.
+            outputs = list(map(self.activation_function, pattern)) # Compute input layer.
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
-            
+
             # Test.
             print(outputs)
             break

@@ -16,5 +16,5 @@ class Layer:
         outputs = []
         for unit in self.units:
             outputs.append(unit.compute(self.activation_function, inputs))
-            
+
         return outputs
