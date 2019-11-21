@@ -2,6 +2,9 @@ from csv import reader
 from network import Network
 
 
+# TODO: replace ALL lists in the project with arrays
+
+
 def main():
     features_cardinality = [3, 3, 2, 3, 4, 2]  # See data/monk.names file.
     features_values = sum(features_cardinality)
@@ -19,16 +22,17 @@ def main():
     with open(training_set_path, 'r') as file:
         file_reader = reader(file, delimiter=' ')  # File parsing.
         for line in file_reader:
+            inputs = [0] * (features_values + 1)  # + 1 for class attribute.
+            inputs[0] = int(line[0])  # Saving class attribute.
             offset = 0  # Offset inside encoded array.
 
             # One-hot encoding.
-            inputs = [0] * features_values
             for i in range(features):
-                inputs[offset + int(line[i + 1]) - 1] = 1
+                inputs[int(line[i + 1]) + offset] = 1
                 offset += features_cardinality[i]
 
             training_set.append(inputs)
-    
+
     nn.train(training_set)
 
 

@@ -38,10 +38,11 @@ class Network:
 
     def train(self, training_set):
         for pattern in training_set:
-            outputs = list(map(self.activation_function, pattern)) # Compute input layer.
+            # Compute input layer without class attribute.
+            outputs = list(map(self.activation_function, pattern[1:]))
+
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
 
-            # Test.
-            print(outputs)
-            break
+            # Square error.
+            print(math.pow(pattern[0] - outputs[0], 2))
