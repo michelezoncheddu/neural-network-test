@@ -37,6 +37,7 @@ class Network:
                 unit.weights.append(random.random() / 10)  # [0, 0.1)
 
     def train(self, training_set):
+        error_out = 0
         for pattern in training_set:
             # Compute input layer without class attribute.
             outputs = list(map(self.activation_function, pattern[1:]))
@@ -44,5 +45,13 @@ class Network:
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
 
-            # Square error.
-            print(math.pow(pattern[0] - outputs[0], 2))
+            error_out += pattern[0] - outputs[0]  # NOTE: One output unit only.
+        
+        error_out /= len(training_set)
+
+        # Backpropagation.
+        derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
+
+        delta_outputs = []
+        for unit in self.layers[-1].units:
+            delta_outputs.append(error_out * derivative(unit.net))
