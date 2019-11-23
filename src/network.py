@@ -46,12 +46,33 @@ class Network:
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
 
             error_out += pattern[0] - outputs[0]  # NOTE: One output unit only.
-        
+
+        # Mean error.
         error_out /= len(training_set)
 
-        # Backpropagation.
+        # Derivative of logistic function.
         derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
 
+        # Backpropagation.
+
+        # Array of 𝛿k (output units).
         delta_outputs = []
         for unit in self.layers[-1].units:
             delta_outputs.append(error_out * derivative(unit.net))
+
+        # Number of inputs of a generic output unit:
+        # note that the network is fully-connected.
+        n_inputs = len(self.layers[-1].units[0].weights)
+        DELTA_W = [0] * n_inputs  # Total gradient.
+
+        # Output layer gradient computation (step 1 on slides).
+        for t in range(len(self.layers[-1].units)):  # For every output unit t.
+
+            # Δ Wt (gradient for the mean error of the unit t).
+            DELTA_Wt = []
+
+            # For every input i in unit t.
+            for i in range(n_inputs):
+                DELTA_Wt.append(delta_outputs[t] * self.layers[-2].units[i].output)
+
+            DELTA_W = [x + y for x, y in zip(DELTA_W, DELTA_Wt)]  # Vectorial sum.
