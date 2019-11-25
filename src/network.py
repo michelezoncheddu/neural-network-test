@@ -15,7 +15,11 @@ class Network:
            - 1 hidden layer with num_hidden units
            - num_outputs output units.
         """
-        
+
+        self.num_inputs = num_inputs
+        self.num_hidden = num_hidden
+        self.num_outputs = num_outputs
+
         # Sigmoidal logistic function.
         self.activation_function = lambda x: 1 / (1 + math.exp(-x))
 
@@ -37,42 +41,39 @@ class Network:
                 unit.weights.append(random.random() / 10)  # [0, 0.1)
 
     def train(self, training_set):
-        error_out = 0
+        # Derivative of logistic function.
+        derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
+
+        # Number of inputs of a generic output unit:
+        # note that the network is fully-connected.
+        n_inputs = len(self.layers[-1].units[0].weights)
+        DELTA_W = [[0] * self.num_outputs] * n_inputs # Total gradient for each output units.
+
+        # Array of 𝛿k (output units).
+        delta_outputs = []
+
         for pattern in training_set:
             # Compute input layer without class attribute.
             outputs = list(map(self.activation_function, pattern[1:]))
 
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
+            
+            # Output units deltas.
+            for output_unit in self.layers[-1].units:
+                error_out = pattern[0] - output_unit.output
+                delta_outputs.append(error_out * derivative(output_unit.net))
 
-            error_out += pattern[0] - outputs[0]  # NOTE: One output unit only.
+            # Output layer gradient computation (step 1 on slides).
+            for t in range(self.num_outputs):  # For every output unit t.
 
-        # Mean error.
-        error_out /= len(training_set)
+                # Δ Wt (gradient for the error of the unit t).
+                DELTA_Wt = []
 
-        # Derivative of logistic function.
-        derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
-
-        # Backpropagation.
-
-        # Array of 𝛿k (output units).
-        delta_outputs = []
-        for unit in self.layers[-1].units:
-            delta_outputs.append(error_out * derivative(unit.net))
-
-        # Number of inputs of a generic output unit:
-        # note that the network is fully-connected.
-        n_inputs = len(self.layers[-1].units[0].weights)
-        DELTA_W = [0] * n_inputs  # Total gradient.
-
-        # Output layer gradient computation (step 1 on slides).
-        for t in range(len(self.layers[-1].units)):  # For every output unit t.
-
-            # Δ Wt (gradient for the mean error of the unit t).
-            DELTA_Wt = []
-
-            # For every input i in unit t.
-            for i in range(n_inputs):
-                DELTA_Wt.append(delta_outputs[t] * self.layers[-2].units[i].output)
-
-            DELTA_W = [x + y for x, y in zip(DELTA_W, DELTA_Wt)]  # Vectorial sum.
+                # For every input i in output unit t.
+                for i in range(n_inputs):
+                    DELTA_Wt.append(delta_outputs[t] * self.layers[-2].units[i].output)
+                
+                # BUG: DELTA_W[t] IS WRONG
+                print(DELTA_Wt)
+                DELTA_W[t] = [x + y for x, y in zip(DELTA_W[t], DELTA_Wt)]  # Vectorial sum.
