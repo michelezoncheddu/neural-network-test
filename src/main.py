@@ -33,7 +33,8 @@ def main():
 
             training_set.append(inputs)
 
-    nn.train(training_set)
+    for i in range(1000):
+        nn.train(training_set)
 
 
 if __name__ == '__main__':

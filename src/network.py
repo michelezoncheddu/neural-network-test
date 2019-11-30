@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import random
 
 from layer import Layer
@@ -7,7 +8,7 @@ from layer import Layer
 class Network:
     """Fully-connected feedforward neural network with one hidden layer."""
 
-    LEARNING_RATE = 0.5
+    LEARNING_RATE = 0.8
 
     def __init__(self, num_inputs, num_hidden, num_outputs):
         """Init a neural network with:
@@ -44,17 +45,19 @@ class Network:
         # Derivative of logistic function.
         derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
 
-        # Number of inputs of a generic output unit:
-        # note that the network is fully-connected.
-        n_inputs = len(self.layers[-1].units[0].weights)
-        DELTA_W = [[0] * self.num_outputs] * n_inputs # Total gradient for each output units.
+        DELTA_W_output = np.zeros((self.num_outputs, self.num_hidden)) # Total gradient for each output units.
+        DELTA_W_hidden = np.zeros((self.num_hidden, self.num_inputs)) # Total gradient for each hidden units.
 
-        # Array of 𝛿k (output units).
-        delta_outputs = []
+        error_tot = 0
 
         for pattern in training_set:
+            # Array of 𝛿k (output and hidden units).
+            delta_outputs = []
+            delta_hidden = []
+
             # Compute input layer without class attribute.
             outputs = list(map(self.activation_function, pattern[1:]))
+            input_layer_outputs = outputs.copy()  # NOTE: Needed? Check pointer location.
 
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
@@ -62,6 +65,7 @@ class Network:
             # Output units deltas.
             for output_unit in self.layers[-1].units:
                 error_out = pattern[0] - output_unit.output
+                error_tot += pattern[0] - round(output_unit.output)
                 delta_outputs.append(error_out * derivative(output_unit.net))
 
             # Output layer gradient computation (step 1 on slides).
@@ -71,9 +75,42 @@ class Network:
                 DELTA_Wt = []
 
                 # For every input i in output unit t.
-                for i in range(n_inputs):
-                    DELTA_Wt.append(delta_outputs[t] * self.layers[-2].units[i].output)
+                for i in range(self.num_hidden):
+                    DELTA_Wt.append(-delta_outputs[t] * self.layers[-2].units[i].output)
                 
-                # BUG: DELTA_W[t] IS WRONG
-                print(DELTA_Wt)
-                DELTA_W[t] = [x + y for x, y in zip(DELTA_W[t], DELTA_Wt)]  # Vectorial sum.
+                DELTA_W_output[t] = [x + y for x, y in zip(DELTA_W_output[t], DELTA_Wt)]  # Vectorial sum.
+
+            # Hidden units deltas.
+            for h in range(self.num_hidden):
+                delta_tmp = 0
+                for o in range(self.num_outputs):
+                    delta_tmp += delta_outputs[o] * self.layers[-1].units[0].weights[h]
+                delta_tmp *= derivative(self.layers[-2].units[h].net)
+                delta_hidden.append(delta_tmp)
+
+            # Hidden layer gradient computation (step 1 on slides).
+            for h in range(self.num_hidden):
+
+                # Δ Wt (gradient for the error of the unit t).
+                DELTA_Wt = []
+
+                # For every input i in hidden unit h.
+                for i in range(self.num_inputs):
+                    DELTA_Wt.append(-delta_hidden[h] * input_layer_outputs[i])
+
+                DELTA_W_hidden[h] = [x + y for x, y in zip(DELTA_W_hidden[h], DELTA_Wt)]  # Vectorial sum.
+
+        # Output layer weights update.
+        for t in range(self.num_outputs):
+            self.layers[-1].units[t].weights = [
+                self.LEARNING_RATE * (x + y) for x, y in
+                    zip(self.layers[-1].units[t].weights, DELTA_W_output[t])]
+        
+        # Hidden layer weights update.
+        for h in range(self.num_hidden):
+            self.layers[-2].units[h].weights = [
+                self.LEARNING_RATE * (x + y) for x, y in
+                    zip(self.layers[-2].units[h].weights, DELTA_W_hidden[h])
+            ]
+
+        print(error_out)
