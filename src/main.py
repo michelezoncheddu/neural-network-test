@@ -12,7 +12,7 @@ def main():
 
     training_set_path = 'data/training/monks-1.train'
 
-    hidden_units = 2
+    hidden_units = 4
     output_units = 1
 
     nn = Network(features_values, hidden_units, output_units)
@@ -32,8 +32,7 @@ def main():
                 offset += features_cardinality[i]
 
             training_set.append(inputs)
-
-    for i in range(1000):
+    for i in range(10):
         nn.train(training_set)
 
 

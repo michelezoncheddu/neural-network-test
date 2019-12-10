@@ -4,7 +4,7 @@ class Unit:
 
     def __init__(self):
         self.weights = []
-        self.bias = 0.5
+        self.bias = 0.05
         self.output = 0
     
     def compute(self, activation_function, inputs):
