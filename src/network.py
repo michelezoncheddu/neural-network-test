@@ -45,10 +45,8 @@ class Network:
         # Derivative of logistic function.
         derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
 
-        DELTA_W_output = np.zeros((self.num_outputs, self.num_hidden))  # Total gradient for each output units.
-        DELTA_W_hidden = np.zeros((self.num_hidden, self.num_inputs))  # Total gradient for each hidden units.
-
         square_error = 0
+        misclassifications = 0
 
         for pattern in training_set:
             # Array of 𝛿k (output and hidden units).
@@ -67,19 +65,14 @@ class Network:
             for output_unit in self.layers[-1].units:
                 error_out = pattern[0] - output_unit.output
                 square_error += math.pow(pattern[0] - output_unit.output, 2)
+                misclassifications += pattern[0] - round(output_unit.output)
                 delta_outputs.append(error_out * derivative(output_unit.net))
 
             # Output layer gradient computation (step 1 on slides).
             for t in range(self.num_outputs):  # For every output unit t.
-
-                # Δ Wt (gradient for the error of the unit t).
-                DELTA_Wt = []
-
                 # For every input i in output unit t.
                 for i in range(self.num_hidden):
-                    DELTA_Wt.append(delta_outputs[t] * self.layers[-2].units[i].output)
-                
-                DELTA_W_output[t] = list(map(sum, zip(DELTA_W_output[t], DELTA_Wt)))  # Vectorial sum.
+                    self.layers[-1].units[t].weights[i] += self.LEARNING_RATE * (delta_outputs[t] * self.layers[-2].units[i].output)
 
             # Hidden units deltas.
             for h in range(self.num_hidden):
@@ -91,28 +84,8 @@ class Network:
 
             # Hidden layer gradient computation (step 1 on slides).
             for h in range(self.num_hidden):
-
-                # Δ Wt (gradient for the error of the unit t).
-                DELTA_Wt = []
-
                 # For every input i in hidden unit h.
                 for i in range(self.num_inputs):
-                    DELTA_Wt.append(delta_hidden[h] * input_layer_outputs[i])
+                    self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * (delta_hidden[h] * input_layer_outputs[i])
 
-                DELTA_W_hidden[h] = list(map(sum, zip(DELTA_W_hidden[h], DELTA_Wt)))  # Vectorial sum.
-
-        # Output layer weights update.
-        for t in range(self.num_outputs):
-            self.layers[-1].units[t].weights = [
-                self.LEARNING_RATE * (x + y) for x, y in
-                    zip(self.layers[-1].units[t].weights, DELTA_W_output[t])
-            ]
-        
-        # Hidden layer weights update.
-        for h in range(self.num_hidden):
-            self.layers[-2].units[h].weights = [
-                self.LEARNING_RATE * (x + y) for x, y in
-                    zip(self.layers[-2].units[h].weights, DELTA_W_hidden[h])
-            ]
-
-        print(square_error)
+        print(misclassifications)

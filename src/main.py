@@ -10,7 +10,7 @@ def main():
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
 
-    training_set_path = 'data/training/monks-1.train'
+    training_set_path = 'data/training/monks-3.train'
 
     hidden_units = 4
     output_units = 1
@@ -32,7 +32,8 @@ def main():
                 offset += features_cardinality[i]
 
             training_set.append(inputs)
-    for i in range(10):
+
+    for i in range(100):
         nn.train(training_set)
 
 
