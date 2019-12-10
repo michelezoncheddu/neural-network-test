@@ -8,7 +8,7 @@ from layer import Layer
 class Network:
     """Fully-connected feedforward neural network with one hidden layer."""
 
-    LEARNING_RATE = 0.2
+    LEARNING_RATE = 0.5
 
     def __init__(self, num_inputs, num_hidden, num_outputs):
         """Init a neural network with:
@@ -22,7 +22,7 @@ class Network:
         self.num_outputs = num_outputs
 
         # Sigmoidal logistic function.
-        self.activation_function = lambda x: 1 / (1 + math.exp(-x))
+        self.activation_function = lambda x: 1 / (1 + np.exp(-x))
 
         self.layers = []
         self.layers.append(Layer(num_inputs, self.activation_function))  # Temporary input layer.
@@ -43,10 +43,13 @@ class Network:
 
     def train(self, training_set):
         # Derivative of logistic function.
-        derivative = lambda x: math.exp(x) / math.pow(1 + math.exp(x), 2)
+        derivative = lambda x: np.exp(x) / math.pow(1 + np.exp(x), 2)
 
         square_error = 0
         misclassifications = 0
+
+        output_gradient = np.zeros((self.num_outputs, self.num_hidden))
+        hidden_gradient = np.zeros((self.num_hidden, self.num_inputs))
 
         for pattern in training_set:
             # Array of 𝛿k (output and hidden units).
@@ -54,7 +57,6 @@ class Network:
             delta_hidden = []
 
             # Compute input layer without class attribute.
-            #outputs = list(map(self.activation_function, pattern[1:]))
             outputs = pattern[1:]
             input_layer_outputs = outputs.copy()
 
@@ -72,7 +74,7 @@ class Network:
             for t in range(self.num_outputs):  # For every output unit t.
                 # For every input i in output unit t.
                 for i in range(self.num_hidden):
-                    self.layers[-1].units[t].weights[i] += self.LEARNING_RATE * (delta_outputs[t] * self.layers[-2].units[i].output)
+                    output_gradient[t][i] += delta_outputs[t] * self.layers[-2].units[i].output
 
             # Hidden units deltas.
             for h in range(self.num_hidden):
@@ -86,6 +88,18 @@ class Network:
             for h in range(self.num_hidden):
                 # For every input i in hidden unit h.
                 for i in range(self.num_inputs):
-                    self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * (delta_hidden[h] * input_layer_outputs[i])
+                    hidden_gradient[h][i] += delta_hidden[h] * input_layer_outputs[i]
 
-        print(misclassifications)
+        # Output layer weights update.
+        for o in range(self.num_outputs):
+            self.layers[-1].units[o].bias -= self.LEARNING_RATE * delta_outputs[o]
+            for i in range(self.num_hidden):
+                self.layers[-1].units[o].weights[i] += self.LEARNING_RATE * output_gradient[o][i]
+        
+        # Hidden layer weights update.
+        for h in range(self.num_hidden):
+            self.layers[-2].units[h].bias -= self.LEARNING_RATE * delta_hidden[h]
+            for i in range(self.num_inputs):
+                self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * hidden_gradient[h][i]
+
+        print(square_error, misclassifications)

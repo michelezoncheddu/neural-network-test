@@ -10,7 +10,7 @@ def main():
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
 
-    training_set_path = 'data/training/monks-3.train'
+    training_set_path = 'data/training/monks-1.train'
 
     hidden_units = 4
     output_units = 1
