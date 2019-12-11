@@ -58,7 +58,7 @@ class Network:
 
             # Compute input layer without class attribute.
             outputs = pattern[1:]
-            input_layer_outputs = outputs.copy()
+            input_layer_outputs = outputs.copy()  # TODO: needed?
 
             for layer in self.layers:  # Compute inner layers.
                 outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
@@ -103,3 +103,9 @@ class Network:
                 self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * hidden_gradient[h][i]
 
         print(square_error, misclassifications)
+
+    def predict(self, inputs):
+        outputs = inputs
+        for layer in self.layers:
+            outputs = layer.compute(outputs)
+        return outputs
