@@ -2,54 +2,49 @@ import math
 import numpy as np
 import random
 
-from layer import Layer
-
 
 class Network:
     """Fully-connected feedforward neural network with one hidden layer."""
 
     LEARNING_RATE = 0.5
 
-    def __init__(self, num_inputs, num_hidden, num_outputs):
+    def __init__(self, size):
         """Init a neural network with:
            - num_inputs input units
            - 1 hidden layer with num_hidden units
            - num_outputs output units.
         """
 
-        self.num_inputs = num_inputs
-        self.num_hidden = num_hidden
-        self.num_outputs = num_outputs
+        self.num_inputs = size[0]
+        self.num_hidden = size[1]
+        self.num_outputs = size[2]
 
-        # Sigmoidal logistic function.
-        self.activation_function = lambda x: 1 / (1 + np.exp(-x))
-
-        self.layers = []
-        self.layers.append(Layer(num_inputs, self.activation_function))  # Temporary input layer.
-        self.layers.append(Layer(num_hidden, self.activation_function))
-        self.layers.append(Layer(num_outputs, self.activation_function))
-
-        # Initialize layers weights except the input one.
-        for i in range(1, len(self.layers)):
-            self.init_layer_weights(self.layers[i], self.layers[i - 1])
+        value = 0.01
+        self.weights = [[np.random.uniform(-value, value) for _ in range(size[i - 1])] for i in range(1, len(size))]
+        self.biases = [[np.random.uniform(-value, value) for _ in range(size[i])] for i in range(len(size))]
         
-        self.layers.pop(0)  # Remove input layer.
+        self.nets = [np.zeros(size[i]) for i in range(1, len(size))]
+        self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
 
-    def init_layer_weights(self, layer, previous_layer):
-        """Init layer weights with random values."""
-        for unit in layer.units:
-            for _ in range(len(previous_layer.units)):
-                unit.weights.append(np.random.uniform(-0.01, 0.01))
+        self.delta = [np.empty(size[i]) for i in range(1, len(size))]
+        self.gradients = [np.zeros(size[i]) for i in range(1, len(size))]
+    
+    @staticmethod
+    def activation_function(x):
+        """Sigmoidal logistic function"""
+        return 1.0 / (1.0 + np.exp(-x))
+    
+    @staticmethod
+    def derivative(x):
+        """Derivative of sigmoidal function"""
+        return np.exp(x) / math.pow(1 + np.exp(x), 2)
+    
+    def feedforward(self):
+
 
     def train(self, training_set):
-        # Derivative of logistic function.
-        derivative = lambda x: np.exp(x) / math.pow(1 + np.exp(x), 2)
-
         square_error = 0
         misclassifications = 0
-
-        output_gradient = np.zeros((self.num_outputs, self.num_hidden))
-        hidden_gradient = np.zeros((self.num_hidden, self.num_inputs))
 
         for pattern in training_set:
             # Array of 𝛿k (output and hidden units).
@@ -58,17 +53,13 @@ class Network:
 
             # Compute input layer without class attribute.
             outputs = pattern[1:]
-            input_layer_outputs = outputs.copy()  # TODO: needed?
-
-            for layer in self.layers:  # Compute inner layers.
-                outputs = layer.compute(outputs)  # Outputs of the previous layer are given to the current.
 
             # Output units deltas.
             for output_unit in self.layers[-1].units:
                 error_out = pattern[0] - output_unit.output
                 square_error += math.pow(pattern[0] - output_unit.output, 2)
                 misclassifications += pattern[0] - round(output_unit.output)
-                delta_outputs.append(error_out * derivative(output_unit.net))
+                delta_outputs.append(error_out * self.derivative(output_unit.net))
 
             # Output layer gradient computation (step 1 on slides).
             for t in range(self.num_outputs):  # For every output unit t.
@@ -81,7 +72,7 @@ class Network:
                 delta_tmp = 0
                 for o in range(self.num_outputs):
                     delta_tmp += delta_outputs[o] * self.layers[-1].units[o].weights[h]
-                delta_tmp *= derivative(self.layers[-2].units[h].net)
+                delta_tmp *= self.derivative(self.layers[-2].units[h].net)
                 delta_hidden.append(delta_tmp)
 
             # Hidden layer gradient computation (step 1 on slides).

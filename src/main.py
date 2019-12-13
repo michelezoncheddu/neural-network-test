@@ -1,4 +1,5 @@
 from csv import reader
+
 from network import Network
 
 
@@ -7,13 +8,13 @@ def main():
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
 
-    training_set_path = 'data/training/monks-2.train'
-    test_set_path = 'data/test/monks-2.test'
+    training_set_path = 'data/training/monks-1.train'
+    test_set_path = 'data/test/monks-1.test'
 
-    hidden_units = 3
+    hidden_units = 4
     output_units = 1
 
-    nn = Network(features_values, hidden_units, output_units)
+    nn = Network([features_values, hidden_units, output_units])
 
     training_set = []
         
@@ -31,7 +32,9 @@ def main():
 
             training_set.append(inputs)
 
-    for i in range(500):
+    return
+
+    for i in range(300):
         nn.train(training_set)
     
     errors = 0
