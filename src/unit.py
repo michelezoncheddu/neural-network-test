@@ -1,10 +1,12 @@
+import numpy as np
+
 
 class Unit:
     """The network's elementary elaboration unit."""
 
     def __init__(self):
         self.weights = []
-        self.bias = 0.5
+        self.bias = np.random.uniform(-0.01, 0.01)
         self.output = 0
     
     def compute(self, activation_function, inputs):
