@@ -15,19 +15,29 @@ class Network:
            - num_outputs output units.
         """
 
+        self.size = size
         self.num_inputs = size[0]
         self.num_hidden = size[1]
         self.num_outputs = size[2]
 
         value = 0.01
-        self.weights = [[np.random.uniform(-value, value) for _ in range(size[i - 1])] for i in range(1, len(size))]
-        self.biases = [[np.random.uniform(-value, value) for _ in range(size[i])] for i in range(len(size))]
+
+        self.weights = [
+            [
+                [
+                    np.random.uniform(-value, value) for _ in range(size[i - 1])  # For every input of the previous layer.
+                ]
+                for _ in range(size[i])  # For every unit.
+            ]
+            for i in range(1, len(size))  # For every layer, without the input one.
+        ]
+
+        self.biases = [[np.random.uniform(-value, value) for _ in range(size[i])] for i in range(1, len(size))]
         
-        self.nets = [np.zeros(size[i]) for i in range(1, len(size))]
+        self.nets =    [np.zeros(size[i]) for i in range(1, len(size))]
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
 
-        self.delta = [np.empty(size[i]) for i in range(1, len(size))]
-        self.gradients = [np.zeros(size[i]) for i in range(1, len(size))]
+        self.deltas =  [np.empty(size[i]) for i in range(1, len(size))]
     
     @staticmethod
     def activation_function(x):
@@ -39,59 +49,67 @@ class Network:
         """Derivative of sigmoidal function"""
         return np.exp(x) / math.pow(1 + np.exp(x), 2)
     
-    def feedforward(self):
+    def feedforward(self, x):
+        activation_function = np.vectorize(self.activation_function)
+        for i in range(len(self.weights)):  # For every layer.
+            self.nets[i] = np.dot(
+                self.weights[i],
+                x if i == 0 else self.outputs[i - 1]) + self.biases[i]
+            self.outputs[i] = activation_function(self.nets[i])
 
-
-    def train(self, training_set):
+    def backpropagation(self, training_set):
         square_error = 0
         misclassifications = 0
 
+        """gradients = [
+            [
+                np.zeros(range(self.size[i - 1])) for _ in range(self.size[i])  # For every unit.
+            ]
+            for i in range(1, len(self.size))  # For every layer.
+        ]"""
+
+        gradients = [
+            [
+                [
+                    0 for _ in range(self.size[i - 1])  # For every input of the previous layer.
+                ]
+                for _ in range(self.size[i])  # For every unit.
+            ]
+            for i in range(1, len(self.size))  # For every layer, without the input one.
+        ]
+
+        derivative = np.vectorize(self.derivative)
+
         for pattern in training_set:
-            # Array of 𝛿k (output and hidden units).
-            delta_outputs = []
-            delta_hidden = []
+            self.feedforward(pattern[1:])
 
-            # Compute input layer without class attribute.
-            outputs = pattern[1:]
-
-            # Output units deltas.
-            for output_unit in self.layers[-1].units:
-                error_out = pattern[0] - output_unit.output
-                square_error += math.pow(pattern[0] - output_unit.output, 2)
-                misclassifications += pattern[0] - round(output_unit.output)
-                delta_outputs.append(error_out * self.derivative(output_unit.net))
-
-            # Output layer gradient computation (step 1 on slides).
-            for t in range(self.num_outputs):  # For every output unit t.
-                # For every input i in output unit t.
-                for i in range(self.num_hidden):
-                    output_gradient[t][i] += delta_outputs[t] * self.layers[-2].units[i].output
+            # Output layer deltas.
+            """self.deltas[-1] = np.multiply(
+                np.subtract(
+                    self.outputs[-1],
+                    pattern[:1]),
+                derivative(self.nets[-1]))
 
             # Hidden units deltas.
-            for h in range(self.num_hidden):
-                delta_tmp = 0
-                for o in range(self.num_outputs):
-                    delta_tmp += delta_outputs[o] * self.layers[-1].units[o].weights[h]
-                delta_tmp *= self.derivative(self.layers[-2].units[h].net)
-                delta_hidden.append(delta_tmp)
+            for i in reversed(range(len(self.weights) - 1)):
+                self.deltas[i] = np.multiply(
+                    np.dot(
+                        self.deltas[i + 1],
+                        np.sum(self.weights[i + 1], axis=1)),
+                    derivative(self.nets[i]))
 
-            # Hidden layer gradient computation (step 1 on slides).
-            for h in range(self.num_hidden):
-                # For every input i in hidden unit h.
-                for i in range(self.num_inputs):
-                    hidden_gradient[h][i] += delta_hidden[h] * input_layer_outputs[i]
+            # Gradient computation.
+            for i in reversed(range(len(self.size) - 1)):
+                for j in range(len(gradients[i])):
+                    gradients[i][j] = np.multiply(
+                        self.deltas[i][j],
+                        pattern[1:] if i == 0 else self.outputs[i - 1])
 
-        # Output layer weights update.
-        for o in range(self.num_outputs):
-            self.layers[-1].units[o].bias -= self.LEARNING_RATE * delta_outputs[o]
-            for i in range(self.num_hidden):
-                self.layers[-1].units[o].weights[i] += self.LEARNING_RATE * output_gradient[o][i]
-        
-        # Hidden layer weights update.
-        for h in range(self.num_hidden):
-            self.layers[-2].units[h].bias -= self.LEARNING_RATE * delta_hidden[h]
-            for i in range(self.num_inputs):
-                self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * hidden_gradient[h][i]
+            # Weights update.
+            for i in range(len(self.weights)):
+                for j in range(len(self.weights[i])):
+                    for k in range(len(self.weights[i][j])):
+                        self.weights[i][j][k] += gradients[i][j][k]"""
 
         print(square_error, misclassifications)
 

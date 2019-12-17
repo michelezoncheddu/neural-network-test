@@ -32,10 +32,10 @@ def main():
 
             training_set.append(inputs)
 
-    return
-
     for i in range(300):
-        nn.train(training_set)
+        nn.backpropagation(training_set)
+
+    return
     
     errors = 0
 
