@@ -92,13 +92,13 @@ class Network:
 
         # Output layer weights update.
         for o in range(self.num_outputs):
-            self.layers[-1].units[o].bias -= self.LEARNING_RATE * delta_outputs[o]
+            self.layers[-1].units[o].bias = delta_outputs[o]
             for i in range(self.num_hidden):
                 self.layers[-1].units[o].weights[i] += self.LEARNING_RATE * output_gradient[o][i]
         
         # Hidden layer weights update.
         for h in range(self.num_hidden):
-            self.layers[-2].units[h].bias -= self.LEARNING_RATE * delta_hidden[h]
+            self.layers[-2].units[h].bias = delta_hidden[h]
             for i in range(self.num_inputs):
                 self.layers[-2].units[h].weights[i] += self.LEARNING_RATE * hidden_gradient[h][i]
 
