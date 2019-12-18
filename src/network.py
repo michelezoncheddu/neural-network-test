@@ -42,10 +42,8 @@ class Network:
     
     @staticmethod
     def derivative(x):
-        """Derivative of sigmoidal function"""
-        #fx = expit(x)
-        #return fx * (1.0 - fx)
-        return math.exp(x) / math.pow(1 + math.exp(x), 2)
+        """Derivative of sigmoidal function (using the differential equation)"""
+        return x * (1.0 - x)
     
     def feedforward(self, x):
         for i in range(len(self.weights)):  # For every layer.
@@ -56,8 +54,6 @@ class Network:
             self.outputs[i] = self.activation_function(self.nets[i])
 
     def backpropagation(self, training_set):
-        derivative = np.vectorize(self.derivative)
-
         # TODO: update bias
 
         square_error = 0
@@ -75,14 +71,14 @@ class Network:
             square_error += math.pow(np.sum(error), 2)
 
             # Output layer deltas.
-            self.deltas[-1] = error * derivative(self.nets[-1])
+            self.deltas[-1] = error * self.derivative(self.outputs[-1])
 
             # Hidden units deltas.
             for i in reversed(range(len(self.weights) - 1)):
                 self.deltas[i] = np.dot(
                     self.deltas[i + 1],
                     self.weights[i + 1]
-                ) * derivative(self.nets[i])
+                ) * self.derivative(self.outputs[i])
 
             # NOTE: optimize below
 
