@@ -34,9 +34,9 @@ def main():
 
     for i in range(300):
         nn.backpropagation(training_set)
-
-    return
     
+    return
+
     errors = 0
 
     with open(test_set_path, 'r') as file:

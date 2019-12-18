@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import random
+from scipy.special import expit
 
 
 class Network:
@@ -27,7 +28,7 @@ class Network:
                 for i in range(1, len(size))  # For every layer, without the input one.
         ]
 
-        self.biases = [np.random.uniform(-value, value, size[i]) for i in range(1, len(size))]
+        self.biases =  [np.random.uniform(-value, value, size[i]) for i in range(1, len(size))]
         
         self.nets =    [np.zeros(size[i]) for i in range(1, len(size))]
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
@@ -37,49 +38,53 @@ class Network:
     @staticmethod
     def activation_function(x):
         """Sigmoidal logistic function"""
-        return 1.0 / (1.0 + np.exp(-x))
+        return expit(x)
     
     @staticmethod
     def derivative(x):
         """Derivative of sigmoidal function"""
-        return np.exp(x) / math.pow(1 + np.exp(x), 2)
+        #fx = expit(x)
+        #return fx * (1.0 - fx)
+        return math.exp(x) / math.pow(1 + math.exp(x), 2)
     
     def feedforward(self, x):
-        activation_function = np.vectorize(self.activation_function)
         for i in range(len(self.weights)):  # For every layer.
             self.nets[i] = np.dot(
                 self.weights[i],
-                x if i == 0 else self.outputs[i - 1]) + self.biases[i]
-            self.outputs[i] = activation_function(self.nets[i])
+                x if i == 0 else self.outputs[i - 1]
+            ) + self.biases[i]
+            self.outputs[i] = self.activation_function(self.nets[i])
 
     def backpropagation(self, training_set):
+        derivative = np.vectorize(self.derivative)
+
+        # TODO: update bias
+
         square_error = 0
         misclassifications = 0
 
-        gradients = [
-            np.zeros((self.size[i], self.size[i - 1]))
-            for i in range(1, len(self.size))  # For every layer, without the input one.
-        ]
-
-        derivative = np.vectorize(self.derivative)
-
         for pattern in training_set:
+            gradients = [
+                np.zeros((self.size[i], self.size[i - 1]))
+                for i in range(1, len(self.size))  # For every layer, without the input one.
+            ]
+
             self.feedforward(pattern[1:])
 
+            error = pattern[:1] - self.outputs[-1]
+            square_error += math.pow(np.sum(error), 2)
+
             # Output layer deltas.
-            self.deltas[-1] = np.multiply(
-                np.subtract(
-                    self.outputs[-1],
-                    pattern[:1]),
-                derivative(self.nets[-1]))
+            self.deltas[-1] = error * derivative(self.nets[-1])
 
             # Hidden units deltas.
             for i in reversed(range(len(self.weights) - 1)):
-                self.deltas[i] = np.multiply(
-                    np.dot(
-                        self.deltas[i + 1],
-                        np.sum(self.weights[i + 1], axis=1)),
-                    derivative(self.nets[i]))
+                self.deltas[i] = np.dot(
+                    self.deltas[i + 1],
+                    self.weights[i + 1]
+                ) * derivative(self.nets[i])
+
+            # NOTE: optimize below
 
             # Gradient computation.
             for i in reversed(range(len(self.size) - 1)):
@@ -92,12 +97,10 @@ class Network:
             for i in range(len(self.weights)):
                 for j in range(len(self.weights[i])):
                     for k in range(len(self.weights[i][j])):
-                        self.weights[i][j][k] += gradients[i][j][k]
+                        self.weights[i][j][k] += self.LEARNING_RATE * gradients[i][j][k]
 
-        print(square_error, misclassifications)
+        print(square_error)
 
     def predict(self, inputs):
-        outputs = inputs
-        for layer in self.layers:
-            outputs = layer.compute(outputs)
-        return outputs
+        self.feedforward(inputs)
+        return self.outputs[-1]
