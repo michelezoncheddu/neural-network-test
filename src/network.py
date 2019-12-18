@@ -23,16 +23,11 @@ class Network:
         value = 0.01
 
         self.weights = [
-            [
-                [
-                    np.random.uniform(-value, value) for _ in range(size[i - 1])  # For every input of the previous layer.
-                ]
-                for _ in range(size[i])  # For every unit.
-            ]
-            for i in range(1, len(size))  # For every layer, without the input one.
+            np.random.uniform(-value, value, (size[i], size[i - 1]))
+                for i in range(1, len(size))  # For every layer, without the input one.
         ]
 
-        self.biases = [[np.random.uniform(-value, value) for _ in range(size[i])] for i in range(1, len(size))]
+        self.biases = [np.random.uniform(-value, value, size[i]) for i in range(1, len(size))]
         
         self.nets =    [np.zeros(size[i]) for i in range(1, len(size))]
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
@@ -61,20 +56,8 @@ class Network:
         square_error = 0
         misclassifications = 0
 
-        """gradients = [
-            [
-                np.zeros(range(self.size[i - 1])) for _ in range(self.size[i])  # For every unit.
-            ]
-            for i in range(1, len(self.size))  # For every layer.
-        ]"""
-
         gradients = [
-            [
-                [
-                    0 for _ in range(self.size[i - 1])  # For every input of the previous layer.
-                ]
-                for _ in range(self.size[i])  # For every unit.
-            ]
+            np.zeros((self.size[i], self.size[i - 1]))
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
 
@@ -84,7 +67,7 @@ class Network:
             self.feedforward(pattern[1:])
 
             # Output layer deltas.
-            """self.deltas[-1] = np.multiply(
+            self.deltas[-1] = np.multiply(
                 np.subtract(
                     self.outputs[-1],
                     pattern[:1]),
@@ -109,7 +92,7 @@ class Network:
             for i in range(len(self.weights)):
                 for j in range(len(self.weights[i])):
                     for k in range(len(self.weights[i][j])):
-                        self.weights[i][j][k] += gradients[i][j][k]"""
+                        self.weights[i][j][k] += gradients[i][j][k]
 
         print(square_error, misclassifications)
 
