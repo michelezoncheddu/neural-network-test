@@ -32,7 +32,8 @@ class Network:
         self.nets = [np.zeros(size[i]) for i in range(1, len(size))]
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
 
-        self.deltas = [np.empty(size[i]) for i in range(1, len(size))]
+        # For backpropagation.
+        self.deltas = []
         self.gradients = []
 
     @staticmethod
@@ -57,24 +58,29 @@ class Network:
 
     def back_propagation(self, inputs, error):
         """Performs the backpropagation algorithm."""
+        deltas = [np.empty(self.size[i]) for i in range(1, len(self.size))]
+
         # Output layer deltas.
-        self.deltas[-1] = error * self.derivative(self.nets[-1])
+        deltas[-1] = error * self.derivative(self.nets[-1])
 
         # Hidden units deltas.
         for i in reversed(range(len(self.weights) - 1)):
-            self.deltas[i] = np.dot(
-                self.deltas[i + 1],
+            deltas[i] = np.dot(
+                deltas[i + 1],
                 self.weights[i + 1]
             ) * self.derivative(self.nets[i])
 
         # Gradient computation.
         for i in reversed(range(len(self.weights))):
-            self.gradients[i] += self.deltas[i].reshape(-1, 1) \
+            self.gradients[i] += deltas[i].reshape(-1, 1) \
                 * (inputs if i == 0 else self.outputs[i - 1])
+            self.deltas[i] += deltas[i]
 
     def train(self, training_set):
         """Trains the neural network (batch mode)."""
         square_error = 0
+
+        self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
 
         self.gradients = [
             np.zeros((self.size[i], self.size[i - 1]))
@@ -82,6 +88,7 @@ class Network:
         ]
 
         for pattern in training_set:
+            # TODO: 1 needs to be parameterized
             inputs = pattern[1:]
             targets = pattern[:1]
 
@@ -93,9 +100,9 @@ class Network:
             self.back_propagation(inputs, error)
 
         # Bias and weights update.
-        self.biases = self.deltas
         for i in range(len(self.weights)):
             self.weights[i] += self.LEARNING_RATE * self.gradients[i]
+            self.biases[i] += self.LEARNING_RATE * self.deltas[i]
 
         print(square_error)
 
