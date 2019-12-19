@@ -55,17 +55,15 @@ class Network:
             self.outputs[i] = self.activation_function(self.nets[i])
 
     def backpropagation(self, training_set):
-        # TODO: update bias
-
         square_error = 0
         misclassifications = 0
 
-        for pattern in training_set:
-            gradients = [
-                np.zeros((self.size[i], self.size[i - 1]))
+        gradients = [
+            np.zeros((self.size[i], self.size[i - 1]))
                 for i in range(1, len(self.size))  # For every layer, without the input one.
-            ]
+        ]
 
+        for pattern in training_set:
             self.feedforward(pattern[1:])
 
             error = pattern[:1] - self.outputs[-1]
@@ -80,22 +78,16 @@ class Network:
                     self.deltas[i + 1],
                     self.weights[i + 1]
                 ) * self.derivative(self.nets[i])
-
-            # NOTE: optimize below
-
+             
             # Gradient computation.
             for i in reversed(range(len(self.weights))):
-                for j in range(len(gradients[i])):
-                    gradients[i][j] = np.multiply(
-                        self.deltas[i][j],
-                        pattern[1:] if i == 0 else self.outputs[i - 1])
-
-            # Weights update.
-            for i in range(len(self.weights)):
-                for j in range(len(self.weights[i])):
-                    for k in range(len(self.weights[i][j])):
-                        self.weights[i][j][k] += self.LEARNING_RATE * gradients[i][j][k]
-
+                gradients[i] += self.deltas[i].reshape(-1, 1) * (pattern[1:] if i == 0 else self.outputs[i - 1])
+           
+        # Bias and weights update.
+        self.biases = self.deltas
+        for i in range(len(self.weights)):
+            self.weights[i] += self.LEARNING_RATE * gradients[i]
+            
         print(square_error)
 
     def predict(self, inputs):

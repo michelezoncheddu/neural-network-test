@@ -11,7 +11,7 @@ def main():
     training_set_path = 'data/training/monks-1.train'
     test_set_path = 'data/test/monks-1.test'
 
-    hidden_units = 4
+    hidden_units = 3
     output_units = 1
 
     nn = Network([features_values, hidden_units, output_units])
@@ -32,7 +32,7 @@ def main():
 
             training_set.append(inputs)
 
-    for i in range(300):
+    for i in range(500):
         nn.backpropagation(training_set)
     
     return
