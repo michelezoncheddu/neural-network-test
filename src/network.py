@@ -43,7 +43,8 @@ class Network:
     @staticmethod
     def derivative(x):
         """Derivative of sigmoidal function (using the differential equation)"""
-        return x * (1.0 - x)
+        fx = expit(x)
+        return fx * (1.0 - fx)
     
     def feedforward(self, x):
         for i in range(len(self.weights)):  # For every layer.
@@ -71,19 +72,19 @@ class Network:
             square_error += math.pow(np.sum(error), 2)
 
             # Output layer deltas.
-            self.deltas[-1] = error * self.derivative(self.outputs[-1])
+            self.deltas[-1] = error * self.derivative(self.nets[-1])
 
             # Hidden units deltas.
             for i in reversed(range(len(self.weights) - 1)):
                 self.deltas[i] = np.dot(
                     self.deltas[i + 1],
                     self.weights[i + 1]
-                ) * self.derivative(self.outputs[i])
+                ) * self.derivative(self.nets[i])
 
             # NOTE: optimize below
 
             # Gradient computation.
-            for i in reversed(range(len(self.size) - 1)):
+            for i in reversed(range(len(self.weights))):
                 for j in range(len(gradients[i])):
                     gradients[i][j] = np.multiply(
                         self.deltas[i][j],
