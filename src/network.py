@@ -4,9 +4,9 @@ from scipy.special import expit
 
 
 class Network:
-    """Fully-connected feedforward neural network with one hidden layer."""
+    """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.5
+    LEARNING_RATE = 0.25
 
     def __init__(self, size):
         """Init a neural network with:
@@ -14,6 +14,7 @@ class Network:
            - 1 hidden layer with num_hidden units
            - num_outputs output units.
         """
+        # TODO: size! - Michele
 
         self.size = size
         self.num_inputs = size[0]
@@ -33,6 +34,7 @@ class Network:
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
 
         # For backpropagation.
+        self.deltas_tmp = [np.empty(self.size[i]) for i in range(1, len(self.size))]
         self.deltas = []
         self.gradients = []
 
@@ -58,23 +60,22 @@ class Network:
 
     def back_propagation(self, inputs, error):
         """Performs the backpropagation algorithm."""
-        deltas = [np.empty(self.size[i]) for i in range(1, len(self.size))]
 
         # Output layer deltas.
-        deltas[-1] = error * self.derivative(self.nets[-1])
+        self.deltas_tmp[-1] = error * self.derivative(self.nets[-1])
 
         # Hidden units deltas.
         for i in reversed(range(len(self.weights) - 1)):
-            deltas[i] = np.dot(
-                deltas[i + 1],
+            self.deltas_tmp[i] = np.dot(
+                self.deltas_tmp[i + 1],
                 self.weights[i + 1]
             ) * self.derivative(self.nets[i])
 
         # Gradient computation.
         for i in reversed(range(len(self.weights))):
-            self.gradients[i] += deltas[i].reshape(-1, 1) \
+            self.gradients[i] += self.deltas_tmp[i].reshape(-1, 1) \
                 * (inputs if i == 0 else self.outputs[i - 1])
-            self.deltas[i] += deltas[i]
+            self.deltas[i] += self.deltas_tmp[i]
 
     def train(self, training_set):
         """Trains the neural network (batch mode)."""
@@ -88,7 +89,7 @@ class Network:
         ]
 
         for pattern in training_set:
-            # TODO: 1 needs to be parameterized
+            # TODO: 1 needs to be parameterized - Michele
             inputs = pattern[1:]
             targets = pattern[:1]
 
