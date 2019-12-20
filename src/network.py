@@ -6,7 +6,7 @@ from scipy.special import expit
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.25
+    LEARNING_RATE = 0.2
 
     def __init__(self, size):
         """Init a neural network with:
@@ -35,6 +35,7 @@ class Network:
 
         # For backpropagation.
         self.deltas_tmp = [np.empty(self.size[i]) for i in range(1, len(self.size))]
+
         self.deltas = []
         self.gradients = []
 
@@ -81,6 +82,7 @@ class Network:
         """Trains the neural network (batch mode)."""
         square_error = 0
 
+        # Needed to store bias "gradient" in batch mode.
         self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
 
         self.gradients = [
@@ -105,7 +107,7 @@ class Network:
             self.weights[i] += self.LEARNING_RATE * self.gradients[i]
             self.biases[i] += self.LEARNING_RATE * self.deltas[i]
 
-        print(square_error)
+        return square_error
 
     def predict(self, inputs):
         """Calculates the neural network output."""

@@ -1,4 +1,7 @@
 from csv import reader
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 
 from network import Network
 
@@ -8,9 +11,14 @@ TESTING_MODE = False
 
 def main():
     """The main function."""
+    matplotlib.use('agg')
     features_cardinality = [3, 3, 2, 3, 4, 2]  # See data/monk.names file.
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
+    num_epoch = 1000
+
+    square_error = np.empty(num_epoch)
+    epoch = np.arange(num_epoch)
 
     training_set_path = 'data/training/monks-1.train'
     test_set_path = 'data/test/monks-1.test'
@@ -37,8 +45,18 @@ def main():
             training_set.append(inputs)
 
     # Training.
-    for i in range(300):
-        nn.train(training_set)
+    for i in range(num_epoch):
+        square_error[i] = nn.train(training_set) / len(training_set)
+
+    # Plot learning curve.
+    fig, ax = plt.subplots()
+    ax.plot(epoch, square_error)
+
+    ax.set(xlabel='Epochs', ylabel='LMS', title='Learning curve')
+    ax.grid()
+    ax.legend('TR')
+    fig.savefig('learning_curve.png')
+    print(square_error[-1])
 
     if TESTING_MODE:
         errors = 0
