@@ -6,7 +6,9 @@ from scipy.special import expit
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.2
+    LEARNING_RATE = 0.1
+    # Momentum hyperparameter
+    ALPHA = 0.7
 
     def __init__(self, size):
         """Init a neural network with:
@@ -15,7 +17,6 @@ class Network:
            - num_outputs output units.
         """
         # TODO: size! - Michele
-
         self.size = size
         self.num_inputs = size[0]
         self.num_hidden = size[1]
@@ -38,6 +39,10 @@ class Network:
 
         self.deltas = []
         self.gradients = []
+        self.gradients_momentum = [
+            np.zeros((self.size[i], self.size[i - 1]))
+            for i in range(1, len(self.size))  # For every layer, without the input one.
+        ]
 
     @staticmethod
     def activation_function(x):
@@ -104,7 +109,10 @@ class Network:
 
         # Bias and weights update.
         for i in range(len(self.weights)):
-            self.weights[i] += self.LEARNING_RATE * self.gradients[i]
+            # gradients + alpha * gradients_old
+            self.gradients_momentum[i] = (self.LEARNING_RATE * self.gradients[i]) \
+                + self.ALPHA * self.gradients_momentum[i]
+            self.weights[i] += self.gradients_momentum[i]
             self.biases[i] += self.LEARNING_RATE * self.deltas[i]
 
         return square_error
