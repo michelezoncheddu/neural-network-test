@@ -21,14 +21,16 @@ class Network:
         self.num_hidden = size[1]
         self.num_outputs = size[2]
 
-        value = 0.7
+        self.weights = []
+        self.biases = []
 
-        self.weights = [
-            np.random.uniform(-value, value, (size[i], size[i - 1]))
-            for i in range(1, len(size))  # For every layer, without the input one.
-        ]
-
-        self.biases = [np.random.uniform(-value, value, size[i]) for i in range(1, len(size))]
+        # Weights and biases inizialization.
+        # TODO: 6 needs to be parameterized - Michele
+        for i in range(1, len(size)):  # For every layer, without the input one.
+            value = math.sqrt(6 / (size[i - 1] + size[i]))
+            self.weights.append(
+                np.random.uniform(-value, value, (size[i], size[i - 1])))
+            self.biases.append(np.zeros(size[i]))
 
         self.nets = [np.zeros(size[i]) for i in range(1, len(size))]
         self.outputs = [np.empty(size[i]) for i in range(1, len(size))]
