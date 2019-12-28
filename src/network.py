@@ -6,9 +6,9 @@ from scipy.special import expit
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.1
+    LEARNING_RATE = 0.9
     # Momentum hyperparameter
-    ALPHA = 0.7
+    ALPHA = 0.9
 
     def __init__(self, size):
         """Init a neural network with:
@@ -110,10 +110,10 @@ class Network:
         # Bias and weights update.
         for i in range(len(self.weights)):
             # gradients + alpha * gradients_old
-            self.gradients_momentum[i] = (self.LEARNING_RATE * self.gradients[i]) \
-                + self.ALPHA * self.gradients_momentum[i]
+            self.gradients_momentum[i] = ((self.LEARNING_RATE / len(training_set)) * \
+                self.gradients[i]) + self.ALPHA * self.gradients_momentum[i]
             self.weights[i] += self.gradients_momentum[i]
-            self.biases[i] += self.LEARNING_RATE * self.deltas[i]
+            self.biases[i] += (self.LEARNING_RATE / len(training_set)) * self.deltas[i]
 
         return square_error
 
