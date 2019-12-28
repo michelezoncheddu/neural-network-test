@@ -24,7 +24,7 @@ class Network:
         self.weights = []
         self.biases = []
 
-        # Weights and biases inizialization.
+        # Weights and biases initialization.
         # TODO: 6 needs to be parameterized - Michele
         for i in range(1, len(size)):  # For every layer, without the input one.
             value = math.sqrt(6 / (size[i - 1] + size[i]))
