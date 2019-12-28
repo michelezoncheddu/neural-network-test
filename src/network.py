@@ -6,9 +6,8 @@ from scipy.special import expit
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.9
-    # Momentum hyperparameter
-    ALPHA = 0.9
+    LEARNING_RATE = 0.5
+    ALPHA = 0.9  # Momentum hyperparameter.
 
     def __init__(self, size):
         """Init a neural network with:
@@ -22,7 +21,7 @@ class Network:
         self.num_hidden = size[1]
         self.num_outputs = size[2]
 
-        value = 0.01
+        value = 0.7
 
         self.weights = [
             np.random.uniform(-value, value, (size[i], size[i - 1]))
@@ -39,10 +38,11 @@ class Network:
 
         self.deltas = []
         self.gradients = []
-        self.gradients_momentum = [
+        self.weights_momentum = [
             np.zeros((self.size[i], self.size[i - 1]))
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
+        self.biases_momentum = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
 
     @staticmethod
     def activation_function(x):
@@ -109,11 +109,13 @@ class Network:
 
         # Bias and weights update.
         for i in range(len(self.weights)):
-            # gradients + alpha * gradients_old
-            self.gradients_momentum[i] = ((self.LEARNING_RATE / len(training_set)) * \
-                self.gradients[i]) + self.ALPHA * self.gradients_momentum[i]
-            self.weights[i] += self.gradients_momentum[i]
-            self.biases[i] += (self.LEARNING_RATE / len(training_set)) * self.deltas[i]
+            self.weights_momentum[i] = self.LEARNING_RATE / len(training_set) * \
+                self.gradients[i] + self.ALPHA * self.weights_momentum[i]
+            self.weights[i] += self.weights_momentum[i]
+
+            self.biases_momentum[i] = self.LEARNING_RATE / len(training_set) * \
+                self.deltas[i] + self.ALPHA * self.biases_momentum[i]
+            self.biases[i] += self.biases_momentum[i]
 
         return square_error
 
