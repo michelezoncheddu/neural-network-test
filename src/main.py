@@ -6,8 +6,7 @@ import numpy as np
 from network import Network
 
 
-TESTING_MODE = False
-
+TESTING_MODE = True
 
 def main():
     """The main function."""
@@ -43,6 +42,9 @@ def main():
                 offset += features_cardinality[i]
 
             training_set.append(inputs)
+
+    # Setting online/minibatch/batch mode
+    nn.MINIBATCH = 1
 
     # Training.
     for i in range(num_epoch):

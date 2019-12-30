@@ -6,8 +6,9 @@ from scipy.special import expit
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.5
-    ALPHA = 0.9  # Momentum hyperparameter.
+    LEARNING_RATE = 0.4
+    ALPHA = 0 # Momentum hyperparameter.
+    MINIBATCH = 0
 
     def __init__(self, size):
         """Init a neural network with:
@@ -96,7 +97,7 @@ class Network:
             np.zeros((self.size[i], self.size[i - 1]))
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
-
+        seen = 0
         for pattern in training_set:
             # TODO: 1 needs to be parameterized - Michele
             inputs = pattern[1:]
@@ -109,15 +110,28 @@ class Network:
 
             self.back_propagation(inputs, error)
 
-        # Bias and weights update.
-        for i in range(len(self.weights)):
-            self.weights_momentum[i] = self.LEARNING_RATE / len(training_set) * \
-                self.gradients[i] + self.ALPHA * self.weights_momentum[i]
-            self.weights[i] += self.weights_momentum[i]
+            seen += 1
+            if seen == self.MINIBATCH:
+                # Bias and weights update.
+                seen = 0
+                for i in range(len(self.weights)):
+                    self.weights_momentum[i] = self.LEARNING_RATE / self.MINIBATCH * \
+                        self.gradients[i] + self.ALPHA * self.weights_momentum[i]
+                    self.weights[i] += self.weights_momentum[i]
 
-            self.biases_momentum[i] = self.LEARNING_RATE / len(training_set) * \
-                self.deltas[i] + self.ALPHA * self.biases_momentum[i]
-            self.biases[i] += self.biases_momentum[i]
+                    self.biases_momentum[i] = self.LEARNING_RATE / self.MINIBATCH * \
+                        self.deltas[i] + self.ALPHA * self.biases_momentum[i]
+                    self.biases[i] += self.biases_momentum[i]
+
+                #TODO: 7 Check if right - Alessio
+                self.gradients = [
+                    np.zeros((self.size[i], self.size[i - 1]))
+                    for i in range(1, len(self.size))  # For every layer, without the input one.
+                ]
+
+                self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
+
+
 
         return square_error
 
