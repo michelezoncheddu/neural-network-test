@@ -68,18 +68,18 @@ def main():
 
     # Training.
     for i in range(num_epoch):
-        result = nn.train(training_set)
-        square_errors_training[i] = result.square_error / len(training_set)
-        errors_training[i] = ((len(training_set) - result.label) / len(training_set)) * 100
+        square_error, label = nn.train(training_set)
+        square_errors_training[i] = square_error / len(training_set)
+        errors_training[i] = ((len(training_set) - label) / len(training_set)) * 100
         if TESTING_MODE:
             error_test = 0
             square_error_test = 0
             test_set = 0
             for inputs in validation_set:
-                result = nn.predict(inputs)
-                if round(result.label[0]) != int(inputs[0]):
+                square_error, label = nn.predict(inputs)
+                if round(label[0]) != int(inputs[0]):
                     error_test += 1
-                square_error_test += result.square_error
+                square_error_test += square_error
                 test_set += 1
             square_errors_test[i] = square_error_test / test_set
             errors_test[i] = ((test_set - error_test) / test_set) * 100
@@ -89,7 +89,7 @@ def main():
     fig_acc, ax_acc = plt.subplots()
 
     ax_learn.plot(epoch, square_errors_training, label='training')
-    ax_learn.plot(epoch, square_errors_test, label='test' )
+    ax_learn.plot(epoch, square_errors_test, label='test')
 
     ax_acc.plot(epoch, errors_training, label='training')
     ax_acc.plot(epoch, errors_test, label='test')

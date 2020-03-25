@@ -8,7 +8,7 @@ class Network:
     """A simple feedforward neural network."""
 
     LEARNING_RATE = 0.4
-    ALPHA = 0 # Momentum hyperparameter.
+    ALPHA = 0  # Momentum hyperparameter.
     MINIBATCH = 0
 
     def __init__(self, size):
@@ -50,12 +50,12 @@ class Network:
 
     @staticmethod
     def activation_function(x):
-        """Sigmoidal logistic function"""
+        """Sigmoidal logistic function."""
         return expit(x)
 
     @staticmethod
     def derivative(x):
-        """Derivative of sigmoidal function (using the differential equation)"""
+        """Derivative of sigmoidal function (using the differential equation)."""
         f_x = expit(x)
         return f_x * (1.0 - f_x)
 
@@ -98,36 +98,38 @@ class Network:
             np.zeros((self.size[i], self.size[i - 1]))
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
+
         seen = 0
-        error_train = 0
+        misclassifications = 0
+
         for pattern in training_set:
-            # TODO: 1 needs to be parameterized - Michele
-            inputs = pattern[1:]
-            targets = pattern[:1]
+            target_dimension = 1
+            inputs = pattern[target_dimension:]
+            targets = pattern[:target_dimension]
 
             self.forward_propagation(inputs)
+            seen += 1
 
             error = targets - self.outputs[-1]
-            if round(self.outputs[-1][0]) != targets:
-                error_train += 1
+            if round(self.outputs[-1][0]) != targets:  # Misclassification.
+                misclassifications += 1
             square_error += math.pow(np.sum(error), 2)
 
             self.back_propagation(inputs, error)
 
-            seen += 1
             if seen == self.MINIBATCH:
-                # Bias and weights update.
                 seen = 0
+
+                # Bias and weights update.
                 for i in range(len(self.weights)):
-                    self.weights_momentum[i] = self.LEARNING_RATE / self.MINIBATCH * \
-                        self.gradients[i] + self.ALPHA * self.weights_momentum[i]
+                    self.weights_momentum[i] = self.LEARNING_RATE * self.gradients[i] \
+                        + self.ALPHA * self.weights_momentum[i]
                     self.weights[i] += self.weights_momentum[i]
 
-                    self.biases_momentum[i] = self.LEARNING_RATE / self.MINIBATCH * \
-                        self.deltas[i] + self.ALPHA * self.biases_momentum[i]
+                    self.biases_momentum[i] = self.LEARNING_RATE * self.deltas[i] \
+                        + self.ALPHA * self.biases_momentum[i]
                     self.biases[i] += self.biases_momentum[i]
 
-                #TODO: 7 Check if right - Alessio
                 self.gradients = [
                     np.zeros((self.size[i], self.size[i - 1]))
                     for i in range(1, len(self.size))  # For every layer, without the input one.
@@ -135,7 +137,7 @@ class Network:
 
                 self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
 
-        return Prediction(square_error, error_train)
+        return square_error, misclassifications
 
     def predict(self, pattern):
         """Calculates the neural network output."""
@@ -145,4 +147,4 @@ class Network:
         self.forward_propagation(inputs)
         error = targets - self.outputs[-1]
         square_error = math.pow(np.sum(error), 2)
-        return Prediction(square_error, self.outputs[-1])
+        return square_error, self.outputs[-1]

@@ -10,3 +10,6 @@ __pycache__/
 .vscode/
 
 learning_curve.png
+accuracy_curve.png
+
+back.py
