@@ -1,6 +1,7 @@
 import math
 import numpy as np
 from scipy.special import expit
+from prediction import Prediction
 
 
 class Network:
@@ -98,6 +99,7 @@ class Network:
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
         seen = 0
+        error_train = 0
         for pattern in training_set:
             # TODO: 1 needs to be parameterized - Michele
             inputs = pattern[1:]
@@ -106,6 +108,8 @@ class Network:
             self.forward_propagation(inputs)
 
             error = targets - self.outputs[-1]
+            if round(self.outputs[-1][0]) != targets:
+                error_train += 1
             square_error += math.pow(np.sum(error), 2)
 
             self.back_propagation(inputs, error)
@@ -131,11 +135,14 @@ class Network:
 
                 self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
 
+        return Prediction(square_error, error_train)
 
-
-        return square_error
-
-    def predict(self, inputs):
+    def predict(self, pattern):
         """Calculates the neural network output."""
+        inputs = pattern[1:]
+        targets = pattern[:1]
+        square_error = 0
         self.forward_propagation(inputs)
-        return self.outputs[-1]
+        error = targets - self.outputs[-1]
+        square_error = math.pow(np.sum(error), 2)
+        return Prediction(square_error, self.outputs[-1])

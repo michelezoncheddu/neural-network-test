@@ -14,9 +14,15 @@ def main():
     features_cardinality = [3, 3, 2, 3, 4, 2]  # See data/monk.names file.
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
-    num_epoch = 1000
+    num_epoch = 300
 
-    square_error = np.empty(num_epoch)
+    # Information plot about training.
+    square_errors_training = np.empty(num_epoch)
+    errors_training = np.empty(num_epoch)
+
+    # Information plot about test.
+    square_errors_test = np.empty(num_epoch)
+    errors_test = np.empty(num_epoch)
     epoch = np.arange(num_epoch)
 
     training_set_path = 'data/training/monks-1.train'
@@ -28,6 +34,7 @@ def main():
     nn = Network([features_values, hidden_units, output_units])
 
     training_set = []
+    validation_set = []
 
     with open(training_set_path, 'r') as file:
         file_reader = reader(file, delimiter=' ')  # File parsing.
@@ -43,44 +50,61 @@ def main():
 
             training_set.append(inputs)
 
+    with open(test_set_path, 'r') as file:
+        file_reader = reader(file, delimiter=' ')  # File parsing.
+        for line in file_reader:
+            inputs = [0] * (features_values + 1)  # + 1 for class attribute.
+            inputs[0] = int(line[0])  # Saving class attribute.
+            offset = 0  # Offset inside encoded array.
+
+            # One-hot encoding.
+            for j in range(features):
+                inputs[int(line[j + 1]) + offset] = 1
+                offset += features_cardinality[j]
+            validation_set.append(inputs)
+
     # Setting online/minibatch/batch mode
     nn.MINIBATCH = 1
 
     # Training.
     for i in range(num_epoch):
-        square_error[i] = nn.train(training_set) / len(training_set)
+        result = nn.train(training_set)
+        square_errors_training[i] = result.square_error / len(training_set)
+        errors_training[i] = ((len(training_set) - result.label) / len(training_set)) * 100
+        if TESTING_MODE:
+            error_test = 0
+            square_error_test = 0
+            test_set = 0
+            for inputs in validation_set:
+                result = nn.predict(inputs)
+                if round(result.label[0]) != int(inputs[0]):
+                    error_test += 1
+                square_error_test += result.square_error
+                test_set += 1
+            square_errors_test[i] = square_error_test / test_set
+            errors_test[i] = ((test_set - error_test) / test_set) * 100
 
     # Plot learning curve.
-    fig, ax = plt.subplots()
-    ax.plot(epoch, square_error)
+    fig_learn, ax_learn = plt.subplots()
+    fig_acc, ax_acc = plt.subplots()
 
-    ax.set(xlabel='Epochs', ylabel='LMS', title='Learning curve')
-    ax.grid()
-    ax.legend('TR')
-    fig.savefig('learning_curve.png')
-    print(square_error[-1])
+    ax_learn.plot(epoch, square_errors_training, label='training')
+    ax_learn.plot(epoch, square_errors_test, label='test' )
 
-    if TESTING_MODE:
-        errors = 0
+    ax_acc.plot(epoch, errors_training, label='training')
+    ax_acc.plot(epoch, errors_test, label='test')
+    ax_acc.set(xlabel='Epochs', ylabel='Accuracy', title='Accuracy curve')
 
-        with open(test_set_path, 'r') as file:
-            file_reader = reader(file, delimiter=' ')  # File parsing.
-            for line in file_reader:
-                inputs = [0] * (features_values + 1)  # + 1 for class attribute.
-                inputs[0] = int(line[0])  # Saving class attribute.
-                offset = 0  # Offset inside encoded array.
+    ax_learn.set(xlabel='Epochs', ylabel='LMS', title='Learning curve')
+    ax_learn.grid()
+    ax_acc.grid()
 
-                # One-hot encoding.
-                for i in range(features):
-                    inputs[int(line[i + 1]) + offset] = 1
-                    offset += features_cardinality[i]
+    ax_learn.legend()
+    ax_acc.legend()    
+    fig_learn.savefig('learning_curve.png')
+    fig_acc.savefig('accuracy_curve.png')
 
-                result = nn.predict(inputs[1:])
-                if round(result[0]) != int(line[0]):
-                    errors += 1
-
-            print(errors)
-
+    print(square_errors_training[-1])
 
 if __name__ == '__main__':
     main()
