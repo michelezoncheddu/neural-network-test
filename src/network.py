@@ -1,14 +1,13 @@
 import math
 import numpy as np
 from scipy.special import expit
-from prediction import Prediction
 
 
 class Network:
     """A simple feedforward neural network."""
 
-    LEARNING_RATE = 0.4
-    ALPHA = 0  # Momentum hyperparameter.
+    LEARNING_RATE = 0.5
+    ALPHA = 0.5  # Momentum hyperparameter.
     MINIBATCH = 0
 
     def __init__(self, size):
@@ -122,11 +121,11 @@ class Network:
 
                 # Bias and weights update.
                 for i in range(len(self.weights)):
-                    self.weights_momentum[i] = self.LEARNING_RATE * self.gradients[i] \
+                    self.weights_momentum[i] = self.LEARNING_RATE * self.gradients[i] / self.MINIBATCH \
                         + self.ALPHA * self.weights_momentum[i]
                     self.weights[i] += self.weights_momentum[i]
 
-                    self.biases_momentum[i] = self.LEARNING_RATE * self.deltas[i] \
+                    self.biases_momentum[i] = self.LEARNING_RATE * self.deltas[i] / self.MINIBATCH \
                         + self.ALPHA * self.biases_momentum[i]
                     self.biases[i] += self.biases_momentum[i]
 

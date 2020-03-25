@@ -6,7 +6,7 @@ import numpy as np
 from network import Network
 
 
-TESTING_MODE = True
+VALIDATION_MODE = True
 
 def main():
     """The main function."""
@@ -64,25 +64,24 @@ def main():
             validation_set.append(inputs)
 
     # Setting online/minibatch/batch mode
-    nn.MINIBATCH = 1
+    nn.MINIBATCH = 1  #len(training_set)
 
     # Training.
     for i in range(num_epoch):
         square_error, label = nn.train(training_set)
         square_errors_training[i] = square_error / len(training_set)
         errors_training[i] = ((len(training_set) - label) / len(training_set)) * 100
-        if TESTING_MODE:
-            error_test = 0
+
+        if VALIDATION_MODE:
+            mislassifications = 0
             square_error_test = 0
-            test_set = 0
             for inputs in validation_set:
                 square_error, label = nn.predict(inputs)
                 if round(label[0]) != int(inputs[0]):
-                    error_test += 1
+                    mislassifications += 1
                 square_error_test += square_error
-                test_set += 1
-            square_errors_test[i] = square_error_test / test_set
-            errors_test[i] = ((test_set - error_test) / test_set) * 100
+            square_errors_test[i] = square_error_test / len(validation_set)
+            errors_test[i] = ((len(validation_set) - mislassifications) / len(validation_set)) * 100
 
     # Plot learning curve.
     fig_learn, ax_learn = plt.subplots()
@@ -100,7 +99,7 @@ def main():
     ax_acc.grid()
 
     ax_learn.legend()
-    ax_acc.legend()    
+    ax_acc.legend()
     fig_learn.savefig('learning_curve.png')
     fig_acc.savefig('accuracy_curve.png')
 
