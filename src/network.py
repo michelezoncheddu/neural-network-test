@@ -50,13 +50,13 @@ class Network:
     @staticmethod
     def activation_function(x):
         """Sigmoidal logistic function."""
-        return expit(x)
+        return expit(x) #x * (x > 0)
 
     @staticmethod
     def derivative(x):
         """Derivative of sigmoidal function (using the differential equation)."""
         f_x = expit(x)
-        return f_x * (1.0 - f_x)
+        return f_x * (1.0 - f_x) #1. * (x >= 0)
 
     def forward_propagation(self, x):
         """Runs the neural network."""

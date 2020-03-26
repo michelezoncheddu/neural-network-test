@@ -25,8 +25,9 @@ def main():
     errors_test = np.empty(num_epoch)
     epoch = np.arange(num_epoch)
 
-    training_set_path = 'data/training/monks-1.train'
-    test_set_path = 'data/test/monks-1.test'
+    data_path = '../data/'
+    training_set_path = data_path + 'training/monks-1.train'
+    test_set_path = data_path + 'test/monks-1.test'
 
     hidden_units = 3
     output_units = 1
@@ -64,7 +65,7 @@ def main():
             validation_set.append(inputs)
 
     # Setting online/minibatch/batch mode
-    nn.MINIBATCH = 1  #len(training_set)
+    nn.MINIBATCH = len(training_set)
 
     # Training.
     for i in range(num_epoch):
@@ -100,8 +101,8 @@ def main():
 
     ax_learn.legend()
     ax_acc.legend()
-    fig_learn.savefig('learning_curve.png')
-    fig_acc.savefig('accuracy_curve.png')
+    fig_learn.savefig('../learning_curve.png')
+    fig_acc.savefig('../accuracy_curve.png')
 
     print(square_errors_training[-1])
 
