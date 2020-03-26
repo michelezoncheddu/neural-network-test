@@ -64,7 +64,7 @@ def main():
                 offset += features_cardinality[j]
             validation_set.append(inputs)
 
-    # Setting online/minibatch/batch mode
+    # Setting online/minibatch/batch mode.
     nn.MINIBATCH = len(training_set)
 
     # Training.

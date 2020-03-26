@@ -50,13 +50,13 @@ class Network:
     @staticmethod
     def activation_function(x):
         """Sigmoidal logistic function."""
-        return expit(x) #x * (x > 0)
+        return expit(x)  # RELU: x * (x > 0)
 
     @staticmethod
     def derivative(x):
         """Derivative of sigmoidal function (using the differential equation)."""
         f_x = expit(x)
-        return f_x * (1.0 - f_x) #1. * (x >= 0)
+        return f_x * (1.0 - f_x)  # RELU: 1. * (x >= 0)
 
     def forward_propagation(self, x):
         """Runs the neural network."""
@@ -87,8 +87,11 @@ class Network:
             self.deltas[i] += self.deltas_tmp[i]
 
     def train(self, training_set):
-        """Trains the neural network (batch mode)."""
+        """Trains the neural network."""
         square_error = 0
+        seen = 0
+        misclassifications = 0
+        target_dimension = 1
 
         # Needed to store bias "gradient" in batch mode.
         self.deltas = [np.zeros(self.size[i]) for i in range(1, len(self.size))]
@@ -98,16 +101,13 @@ class Network:
             for i in range(1, len(self.size))  # For every layer, without the input one.
         ]
 
-        seen = 0
-        misclassifications = 0
-
         for pattern in training_set:
-            target_dimension = 1
+            seen += 1
+
             inputs = pattern[target_dimension:]
             targets = pattern[:target_dimension]
 
             self.forward_propagation(inputs)
-            seen += 1
 
             error = targets - self.outputs[-1]
             if round(self.outputs[-1][0]) != targets:  # Misclassification.
@@ -116,16 +116,19 @@ class Network:
 
             self.back_propagation(inputs, error)
 
+            # TODO: update weights if len(ts) % MB != 0 - Michele
             if seen == self.MINIBATCH:
                 seen = 0
 
                 # Bias and weights update.
                 for i in range(len(self.weights)):
-                    self.weights_momentum[i] = self.LEARNING_RATE * self.gradients[i] / self.MINIBATCH \
+                    self.weights_momentum[i] = \
+                        self.LEARNING_RATE * self.gradients[i] / self.MINIBATCH \
                         + self.ALPHA * self.weights_momentum[i]
                     self.weights[i] += self.weights_momentum[i]
 
-                    self.biases_momentum[i] = self.LEARNING_RATE * self.deltas[i] / self.MINIBATCH \
+                    self.biases_momentum[i] = \
+                        self.LEARNING_RATE * self.deltas[i] / self.MINIBATCH \
                         + self.ALPHA * self.biases_momentum[i]
                     self.biases[i] += self.biases_momentum[i]
 
