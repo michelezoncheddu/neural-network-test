@@ -14,7 +14,7 @@ def main():
     features_cardinality = [3, 3, 2, 3, 4, 2]  # See data/monk.names file.
     features_values = sum(features_cardinality)
     features = len(features_cardinality)  # Number of features.
-    num_epoch = 300
+    num_epoch = 100
 
     # Information plot about training.
     square_errors_training = np.empty(num_epoch)
@@ -26,8 +26,8 @@ def main():
     epoch = np.arange(num_epoch)
 
     data_path = '../data/'
-    training_set_path = data_path + 'training/monks-1.train'
-    test_set_path = data_path + 'test/monks-1.test'
+    training_set_path = data_path + 'training/monks-2.train'
+    test_set_path = data_path + 'test/monks-2.test'
 
     hidden_units = 3
     output_units = 1
@@ -70,6 +70,7 @@ def main():
     # Training.
     for i in range(num_epoch):
         square_error, label = nn.train(training_set)
+        print(square_error / len(training_set))
         square_errors_training[i] = square_error / len(training_set)
         errors_training[i] = ((len(training_set) - label) / len(training_set)) * 100
 
@@ -84,7 +85,7 @@ def main():
             square_errors_test[i] = square_error_test / len(validation_set)
             errors_test[i] = ((len(validation_set) - mislassifications) / len(validation_set)) * 100
 
-    # Plot learning curve.
+    # Plot learning curfve.
     fig_learn, ax_learn = plt.subplots()
     fig_acc, ax_acc = plt.subplots()
 
@@ -104,7 +105,6 @@ def main():
     fig_learn.savefig('../learning_curve.png')
     fig_acc.savefig('../accuracy_curve.png')
 
-    print(square_errors_training[-1])
 
 if __name__ == '__main__':
     main()

@@ -122,6 +122,7 @@ class Network:
 
                 # Bias and weights update.
                 for i in range(len(self.weights)):
+                    # TODO: momentum interfere with batch - Michele
                     self.weights_momentum[i] = \
                         self.LEARNING_RATE * self.gradients[i] / self.MINIBATCH \
                         + self.ALPHA * self.weights_momentum[i]
